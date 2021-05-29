@@ -1,1 +1,4 @@
-"# RedisWebApp" 
+- Api .net core 2.2
+- VS 2017
+- Docker
+- Redis

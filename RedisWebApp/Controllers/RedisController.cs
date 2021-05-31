@@ -1,68 +1,71 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Caching.Distributed;
-using StackExchange.Redis;
-using System;
+﻿using System;
 using System.Data.Common;
+using StackExchange.Redis;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Distributed;
 
 namespace RedisWebApp.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class RedisController : ControllerBase
+    public class RedisController : Controller
     {
-        private readonly IDistributedCache distributedCache;       
+        private readonly IDistributedCache distributedCache;
+        private readonly IConnectionMultiplexer connectionMultiplexer;
 
-        public RedisController(IDistributedCache distributedCache)
+        public RedisController(IDistributedCache distributedCache, IConnectionMultiplexer connectionMultiplexer)
         {
             this.distributedCache = distributedCache;
+            this.connectionMultiplexer = connectionMultiplexer;
         }
 
         [HttpPost("inserir")]
-        public IActionResult CreateKeys(string chave, string valor)
+        public IActionResult CreateKeys(string key, string valor)
         {
-            distributedCache.SetString(chave, valor );
-
-            return StatusCode(200);
+            if (!PesquisaChave(key))
+                distributedCache.SetString(key, valor);
+           
+            return StatusCode(200, $"Chave [{key}]-[{valor}] inseridos com sucesso.");
         }
 
         [HttpGet("buscar")]
-        public IActionResult GetKey(string chave)
-        {        
-            if( PesquisaChave(chave) )
-                return StatusCode(200);
+        public IActionResult GetKey(string key)
+        {
+            if (PesquisaChave(key))
+                return StatusCode(200, $"Chave [{key}] encontrada.");
 
-                return StatusCode(404);
+            return StatusCode(404, $"Chave [{key}] não encontrada.");
         }
 
         [HttpPost("remover")]
-        public IActionResult DeleteKey(string chave)
+        public IActionResult DeleteKey(string key)
         {
-            if (PesquisaChave(chave))
+            if (PesquisaChave(key))
             {
                 try
-                {
-                    distributedCache.RemoveAsync(chave);
-                    return StatusCode(200);
-
+                {                    
+                    distributedCache.RemoveAsync(key);
+                    return StatusCode(200, $"Chave [{key}] deletada com sucesso.");
                 }
                 catch (DbException e)
                 {
                     throw new Exception(e.Message);
                 }
             }
-
-            return StatusCode(400);
+            return StatusCode(404, $"Chave [{key}] não encontrada.");
         }
 
-        private bool PesquisaChave(string chave)
+        private bool PesquisaChave(string key)
         {
-            //RedisValue verifica = distributedCache.GetString(chave);
-            var verifica = distributedCache.GetAsync(chave);
-           
-
-            if (verifica != null)            
-                return true;
-
+            try
+            {
+                if (connectionMultiplexer.GetDatabase().KeyExists(key))
+                    return true;
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message);
+            }
             return false;
         }
     }

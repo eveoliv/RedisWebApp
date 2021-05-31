@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using StackExchange.Redis;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.OpenApi.Models;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -15,15 +16,15 @@ namespace RedisWebApp
         }
 
         public IConfiguration Configuration { get; }
-
-        // This method gets called by the runtime. Use this method to add services to the container.
+        
         public void ConfigureServices(IServiceCollection services)
-        {
-            //services.AddSingleton<RedisConnection>();
+        {                   
+            services.AddSingleton<IConnectionMultiplexer>(ConnectionMultiplexer
+                .Connect(Configuration.GetConnectionString("ConexaoRedis")));
 
             services.AddDistributedRedisCache(options =>
             {
-                options.Configuration = Configuration.GetConnectionString("ConexaoRedis");               
+                options.Configuration = Configuration.GetConnectionString("ConexaoRedis");
             });
 
             services.AddSwaggerGen(options =>
@@ -33,8 +34,7 @@ namespace RedisWebApp
 
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
         }
-
-        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
+       
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
             if (env.IsDevelopment())

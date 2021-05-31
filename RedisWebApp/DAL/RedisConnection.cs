@@ -5,6 +5,7 @@ namespace RedisWebApp.DAL
 {
     public class RedisConnection
     {
+        //exemplo de implementacao manual ConnectionMultiplexer, nao utilizada nesse projeto
         private ConnectionMultiplexer _conexao;
 
         public RedisConnection(IConfiguration configuration)

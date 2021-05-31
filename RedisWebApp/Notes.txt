@@ -1,0 +1,29 @@
+﻿Criar o container
+	docker run --name local-redis -p 6379:6379 -d redis
+
+Entrar no container
+	docker exec -it local-redis sh
+
+Acessar o cient
+	#redis-cli
+
+	127.0.0.1:6379>
+
+  set TESTE_KEY|123|456|789 TESTE 123 -> insert string
+hmset TESTE_KEY|123|456|789 TESTE 123 -> insert hash
+
+-----------------redis-----------------------------
+pesquisar chaves 
+	keys *
+
+pesquisar tipo
+	type TESTE_KEY|123|456|789
+
+pesquisar string
+	get TESTE_KEY|123|456|789 TESTE
+
+pesquisar hash
+	hmget TESTE_KEY|123|456|789 TESTE
+
+
+	TESTE_KEY|123|456|999
